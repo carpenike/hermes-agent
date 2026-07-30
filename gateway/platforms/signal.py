@@ -960,7 +960,8 @@ class SignalAdapter(BasePlatformAdapter):
         """Normalize a group id for signal-cli-rest-api recipients."""
         if group_id.startswith("group."):
             return group_id
-        return f"group.{group_id}"
+        encoded = base64.b64encode(group_id.encode("utf-8")).decode("ascii")
+        return f"group.{encoded}"
 
     def _recipient_from_params(self, params: dict) -> Optional[str]:
         """Extract the REST API recipient (DM, UUID, or group id)."""
