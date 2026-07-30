@@ -84,12 +84,12 @@ class TestSendRoute:
         assert result == {"results": [{"type": "SUCCESS"}], "timestamp": 1234567890123}
 
     @pytest.mark.asyncio
-    async def test_send_group_recipient_is_prefixed(self, monkeypatch):
+    async def test_send_raw_group_recipient_is_encoded(self, monkeypatch):
         adapter = _make_adapter(monkeypatch, FakeResponse(status_code=201, json_data={}))
         await adapter._rpc("send", {"groupId": "abc123==", "message": "hi"})
 
         body = adapter.client.calls[0]["json"]
-        assert body["recipients"] == ["group.abc123=="]
+        assert body["recipients"] == ["group.YWJjMTIzPT0="]
 
     @pytest.mark.asyncio
     async def test_send_group_prefix_not_duplicated(self, monkeypatch):
@@ -217,7 +217,7 @@ class TestTypingIndicatorRoute:
         adapter = _make_adapter(monkeypatch, FakeResponse(status_code=204))
         await adapter._rpc("sendTyping", {"groupId": "xyz=="})
 
-        assert adapter.client.calls[0]["json"] == {"recipient": "group.xyz=="}
+        assert adapter.client.calls[0]["json"] == {"recipient": "group.eHl6PT0="}
 
     @pytest.mark.asyncio
     async def test_typing_without_recipient_makes_no_request(self, monkeypatch):
