@@ -946,6 +946,27 @@ class TestPasteCallbackReader:
 class TestWaitForCallbackPasteIntegration:
     """_wait_for_callback offers the paste prompt only when interactive."""
 
+    def test_paste_releases_fixed_callback_port(self, monkeypatch):
+        """A pasted redirect must stop the HTTP listener before returning."""
+        import socket
+        import tools.mcp_oauth as mod
+
+        port = _find_free_port()
+        mod._oauth_port = port
+        monkeypatch.setattr(mod, "_is_interactive", lambda: True)
+        monkeypatch.setattr(
+            "sys.stdin",
+            MagicMock(readline=lambda: "code=pasted&state=state123\n"),
+        )
+
+        assert asyncio.run(_wait_for_callback()) == ("pasted", "state123")
+
+        probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            probe.bind(("127.0.0.1", port))
+        finally:
+            probe.close()
+
     def test_paste_prompt_shown_on_tty(self, monkeypatch, capsys):
         import tools.mcp_oauth as mod
         mod._oauth_port = _find_free_port()
