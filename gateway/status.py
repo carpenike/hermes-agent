@@ -989,6 +989,7 @@ def write_runtime_status(
     error_message: Any = _UNSET,
     needs_attention: Any = _UNSET,
     retrying_since: Any = _UNSET,
+    last_inbound_message_at: Any = _UNSET,
     served_profiles: Any = _UNSET,
 ) -> None:
     """Persist gateway runtime health information for diagnostics/status."""
@@ -1036,6 +1037,12 @@ def write_runtime_status(
             # ISO timestamp of when the platform entered its current
             # continuous retry episode; None clears it on reconnect.
             platform_payload["retrying_since"] = retrying_since
+        if last_inbound_message_at is not _UNSET:
+            # Stamped by an adapter's dispatch path when a REAL user message
+            # is delivered — never on transport frames, receipts, or daemon
+            # health. Lets operators distinguish "connected" from "connected
+            # but not receiving" (#40199).
+            platform_payload["last_inbound_message_at"] = last_inbound_message_at
         platform_payload["updated_at"] = _utc_now_iso()
         payload["platforms"][platform] = platform_payload
 
